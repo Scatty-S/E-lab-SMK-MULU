@@ -67,6 +67,7 @@ def render_proses_lab():
             pass
 
     # CRITICAL FIX: Suntikkan cache HANYA jika key belum ada di session state utama.
+    # Ini mencegah data baru yang sedang diketik user ter-overwrite/terhapus secara tidak sengaja.
     for k, v in st.session_state[f"lab_cache_{patient_id}"].items():
         if k not in st.session_state:
             st.session_state[k] = v
@@ -78,11 +79,12 @@ def render_proses_lab():
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;500;600;700;800&display=swap');
         
-        /* 1. Paksa Background Utama Hanya pada Area Kerja Utama */
+        /* 1. Paksa Background Utama Hanya pada Area Kerja Utama (Sidebar Tetap Normal) */
         [data-testid="stMainBlockContainer"] {
             background-color: #f8fafc !important;
         }
         
+        /* Fix Top Header Streamlit biar gak belang */
         [data-testid="stHeader"] {
             background-color: transparent !important;
         }
@@ -132,11 +134,12 @@ def render_proses_lab():
             border-radius: 8px !important;
         }
         
+        /* Gaya Teks Placeholder */
         [data-testid="stMainBlockContainer"] .stTextInput input::placeholder {
             color: #94a3b8 !important;
         }
 
-        /* 6. HOVER ENGINE BUTTON */
+        /* 6. HOVER ENGINE BUTTON: Default Solid Hitam, Hover Putih Cerah */
         [data-testid="stMainBlockContainer"] .stButton > button {
             color: #ffffff !important;
             background-color: #0f172a !important;
@@ -155,7 +158,7 @@ def render_proses_lab():
     </style>
     """, unsafe_allow_html=True)
 
-    # Bersihkan format tanggal registrasi
+    # Bersihkan format tanggal registrasi (hilangkan huruf 'T' bawaan ISO)
     tgl_raw = patient.get('tgl_registrasi') or patient.get('tanggal_registrasi') or patient.get('created_at') or ""
     tgl_formatted = tgl_raw.replace("T", " ").split(".")[0] if "T" in tgl_raw else tgl_raw
 
@@ -221,6 +224,7 @@ def render_proses_lab():
 
     parameters_terpilih = []
 
+    # Tampilan pilihan bergaya Box Kotak Kontainer
     for (bidang, main), items in kelompok_pemeriksaan.items():
         with st.container(border=True):
             col_header1, col_header2 = st.columns([2, 1])
@@ -289,14 +293,16 @@ def render_proses_lab():
 
     st.markdown("---")
     
-    # INPUT DATA OTORISASI PETUGAS
+    # INPUT DATA OTORISASI PETUGAS & PENANGGUNG JAWAB
     st.subheader("👤 Otorisasi Petugas Laboratorium")
     with st.container(border=True):
         col_auth1, col_auth2 = st.columns(2)
         with col_auth1:
             penanggung_jawab = st.text_input("Penanggung Jawab (PJ)", value="Astri Nur Aini, S.Tr.Kes", key=f"pj_{patient_id}")
         with col_auth2:
-            analis_pemeriksa = st.text_input("Analis Pemeriksa", value="Ahmad Dani", key=f"analis_{patient_id}")
+            # MEMANGGIL USERNAME LOGIN SECARA OTOMATIS
+            username_aktif = st.session_state.get("username", "Analis")
+            analis_pemeriksa = st.text_input("Analis Pemeriksa", value=username_aktif, key=f"analis_{patient_id}")
 
     st.markdown("<br>", unsafe_allow_html=True)
     st.metric(label="Total Biaya Pemeriksaan Pasien", value=f"Rp {int(total_biaya):,}".replace(",", "."))
@@ -349,7 +355,9 @@ def render_proses_lab():
     else:
         st.caption("💡 *Tombol cetak dokumen PDF akan aktif di sini secara otomatis setelah kamu menekan tombol simpan di atas.*")
 
-    # REAL-TIME LOCK ENGINE
+    # ============================================================
+    # REAL-TIME LOCK ENGINE: Amankan Ketikan Analis di Setiap Rerun
+    # ============================================================
     for k in list(st.session_state.keys()):
         if any(k.startswith(prefix) for prefix in ["chk_", "hasil_in_", "norm_in_", "sat_in_", "trf_in_", "all_", "bdg_in_", "main_in_", "sub_in_", "pj_", "analis_"]):
             st.session_state[f"lab_cache_{patient_id}"][k] = st.session_state[k]
