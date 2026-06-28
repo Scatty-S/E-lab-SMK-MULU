@@ -113,7 +113,7 @@ if not st.session_state.is_logged_in:
     render_login()
 else:
     # TAMPILAN SIDEBAR NAVIGASI
-    st.sidebar.markdown(f"E-Lab System")
+    st.sidebar.markdown("### 🧪 E-Lab System")
     st.sidebar.write(f"Selamat Datang, **{st.session_state.username}**")
     st.sidebar.caption(f"Hak Akses: `{st.session_state.role.upper()}`")
     st.sidebar.markdown("---")
@@ -158,6 +158,11 @@ else:
             st.session_state.current_page = "Dashboard Admin"
             st.rerun()
             
+        # Menu 2: Riwayat Hapus (Ditambahkan agar sinkron dengan views)
+        a2_type = "primary" if st.session_state.current_page == "Riwayat Hapus" else "secondary"
+        if st.sidebar.button("🗑️ Riwayat Hapus", type=a2_type, use_container_width=True):
+            st.session_state.current_page = "Riwayat Hapus"
+            st.rerun()
 
     # Tombol Keluar (Logout)
     st.sidebar.markdown("---")
@@ -181,3 +186,5 @@ else:
         render_ubah_pasien()
     elif st.session_state.current_page == "Dashboard Admin":
         render_dashboard_admin()
+    elif st.session_state.current_page == "Riwayat Hapus":
+        render_riwayat_hapus()
