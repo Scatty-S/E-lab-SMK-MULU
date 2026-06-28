@@ -1,6 +1,7 @@
 import streamlit as st
 import importlib
 import inspect
+import traceback  # Ditambahkan untuk melacak error tersembunyi
 
 # 1. Set konfigurasi halaman wajib di paling atas script
 st.set_page_config(
@@ -85,6 +86,11 @@ def auto_load_view(nama_modul):
         else:
             return lambda: st.error(f"⚠️ Sistem tidak menemukan fungsi apa pun di dalam file `views/{nama_modul}.py`.")
     except Exception as e:
+        # Menampilkan log error mendalam ke konsol Streamlit Cloud agar mudah dilacak
+        print(f"\n[E-LAB LOG] DETAIL ERROR SAAT MEMUAT: views/{nama_modul}.py")
+        traceback.print_exc()
+        print("[E-LAB LOG] SELESAI DETAIL ERROR\n")
+        
         return lambda: st.error(f"❌ Gagal memuat file `views/{nama_modul}.py`: {str(e)}")
 
 # Memuat halaman secara dinamis
@@ -158,7 +164,7 @@ else:
             st.session_state.current_page = "Dashboard Admin"
             st.rerun()
             
-        # Menu 2: Riwayat Hapus (Ditambahkan agar sinkron dengan views)
+        # Menu 2: Riwayat Hapus
         a2_type = "primary" if st.session_state.current_page == "Riwayat Hapus" else "secondary"
         if st.sidebar.button("🗑️ Riwayat Hapus", type=a2_type, use_container_width=True):
             st.session_state.current_page = "Riwayat Hapus"
