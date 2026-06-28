@@ -169,11 +169,6 @@ else:
             st.session_state.current_page = "Dashboard Admin"
             st.rerun()
             
-        # Menu 2: Riwayat Hapus
-        a2_type = "primary" if st.session_state.current_page == "Riwayat Hapus" else "secondary"
-        if st.sidebar.button("🗑️ Riwayat Hapus", type=a2_type, use_container_width=True):
-            st.session_state.current_page = "Riwayat Hapus"
-            st.rerun()
 
     # Tombol Keluar (Logout)
     st.sidebar.markdown("---")
@@ -197,5 +192,3 @@ else:
         render_ubah_pasien()
     elif st.session_state.current_page == "Dashboard Admin":
         render_dashboard_admin()
-    elif st.session_state.current_page == "Riwayat Hapus":
-        render_riwayat_hapus()
