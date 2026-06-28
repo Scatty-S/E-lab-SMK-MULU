@@ -1,7 +1,7 @@
 import streamlit as st
 import importlib
 import inspect
-import traceback  # Ditambahkan untuk melacak error tersembunyi
+import traceback
 
 # 1. Set konfigurasi halaman wajib di paling atas script
 st.set_page_config(
@@ -65,7 +65,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# FUNGSI SAKTI: Mendeteksi otomatis fungsi utama di dalam file views tanpa peduli namanya
+# FUNGSI SAKTI: Otomatis mendeteksi fungsi render halaman dan menampilkan error detail langsung di UI web
 def auto_load_view(nama_modul):
     try:
         mod = importlib.import_module(f"views.{nama_modul}")
@@ -86,12 +86,17 @@ def auto_load_view(nama_modul):
         else:
             return lambda: st.error(f"⚠️ Sistem tidak menemukan fungsi apa pun di dalam file `views/{nama_modul}.py`.")
     except Exception as e:
-        # Menampilkan log error mendalam ke konsol Streamlit Cloud agar mudah dilacak
-        print(f"\n[E-LAB LOG] DETAIL ERROR SAAT MEMUAT: views/{nama_modul}.py")
-        traceback.print_exc()
-        print("[E-LAB LOG] SELESAI DETAIL ERROR\n")
+        # Mengambil pesan error mendalam (Traceback) dari file views yang rusak
+        error_detail = traceback.format_exc()
         
-        return lambda: st.error(f"❌ Gagal memuat file `views/{nama_modul}.py`: {str(e)}")
+        # Membuat fungsi darurat yang akan memunculkan detail kerusakannya langsung di layar browser
+        def tampilkan_error_di_layar():
+            st.error(f"❌ Gagal memuat file `views/{nama_modul}.py` karena ada error di dalam file tersebut.")
+            st.subheader("🔍 Detail Kerusakan Internal File:")
+            st.info("Buka file tersebut di text editor Anda, lihat baris yang ditunjukkan di bawah ini, lalu perbaiki kodenya.")
+            st.code(error_detail, language="python")
+            
+        return tampilkan_error_di_layar
 
 # Memuat halaman secara dinamis
 render_login = auto_load_view("login")
